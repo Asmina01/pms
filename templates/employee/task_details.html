@@ -1,0 +1,136 @@
+<div class="container-fluid mt-4">
+    <div class="row">
+        <!-- Left Sidebar: Overdue Tasks and Upcoming Deadlines -->
+        <div class="col-md-7">
+            <!-- Overdue Tasks Section -->
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header">
+                    <h6 class="mb-0 text-danger">Overdue Tasks</h6>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group">
+                        {% for task in tasks %}
+                            {% if task.completed_time_display and task.completed_time_display.date > task.due_date %}
+                                <li class="list-group-item d-flex justify-content-between">
+                                    {{ task.task_name }}
+                                    <span class="text-danger">Due: {{ task.due_date }}</span>
+                                </li>
+                            {% else %}
+                                <li class="list-group-item d-flex justify-content-between">
+                                    {{ task.task_name }}
+                                    <span class="text-success">On Time</span>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Upcoming Deadlines Section -->
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header">
+                    <h6 class="mb-0 text-warning">Upcoming Deadlines</h6>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group">
+                        {% if upcoming_tasks %}
+                            {% for task in upcoming_tasks %}
+                                <li class="list-group-item d-flex justify-content-between">
+                                    {{ task.task_name }}
+                                    <span class="text-warning">Due: {{ task.due_date }}</span>
+                                </li>
+                            {% endfor %}
+                        {% else %}
+                            <li class="list-group-item text-muted text-center">No upcoming deadlines</li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+             <div class="card mb-4 shadow-sm">
+                <div class="card-header">
+                    <h6 class="mb-0">Time Spent on Tasks</h6>
+                </div>
+                <div class="card-body">
+                    <div id="chartContainer" style="width: 100%; height: 400px;">
+                        <canvas id="timeSpentChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Sidebar: Charts for Project Progress and Time Spent -->
+        <div class="col-md-4">
+            <!-- Project Progress Donut Chart -->
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header">
+                    <h6 class="mb-0">Project Progress</h6>
+                </div>
+                <div class="card-body" style="width: 100%; height: 400px;">
+                    <canvas id="progressChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Time Spent on Tasks Bar Chart -->
+
+        </div>
+    </div>
+</div>
+
+<!-- Include Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    // Project Progress Donut Chart
+    var ctxProgress = document.getElementById('progressChart').getContext('2d');
+    var progressData = JSON.parse('{{ progress_data|safe }}'); // Convert Django data safely
+
+    var progressChart = new Chart(ctxProgress, {
+        type: 'doughnut',
+        data: {
+            labels: ['Completed', 'Pending', 'In Progress'],
+            datasets: [{
+                data: progressData,
+                backgroundColor: ['#28a745', '#ffc107', '#007bff']
+            }]
+        }
+    });
+
+    // Time Spent on Tasks Bar Chart
+    document.addEventListener("DOMContentLoaded", function () {
+        const taskNames = [{% for task in tasks %}"{{ task.task_name }}",{% endfor %}];
+        const taskTimes = [{% for task in tasks %}{{ task.total_hours }}.{% if task.total_minutes < 10 %}0{% endif %}{{ task.total_minutes }},{% endfor %}];
+
+        const chartContainer = document.getElementById('timeSpentChart').getContext('2d');
+
+        new Chart(chartContainer, {
+            type: 'bar',
+            data: {
+                labels: taskNames,
+                datasets: [{
+                    label: 'Time Spent (hours)',
+                    data: taskTimes,
+                    backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { autoSkip: false }
+                    }
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { enabled: true }
+                },
+                elements: {
+                    bar: { maxBarThickness: 30 }
+                }
+            }
+        });
+    });
+</script>

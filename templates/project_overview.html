@@ -1,0 +1,626 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<style>
+        body{
+            background-color:#f5f5f5;
+        }
+
+
+
+</style>
+
+<body>
+    <div class="container mt-4">
+    <!-- Project Header -->
+    <div class="card shadow-sm border-0 rounded-3">
+        <div class="card-header bg-light py-3 px-4 d-flex justify-content-between align-items-center">
+            <div>
+                <h4 class="fw-bold text-dark mb-1">{{ project.name }}</h4>
+                <p class="text-muted small mb-0">
+                    <i class="bi bi-calendar-event"></i> Start Date: {{ project.start_date }}
+                    |
+                    <i class="bi bi-clock-history"></i> Due Date: {{ project.due_date }}
+                </p>
+            </div>
+        </div>
+
+
+
+
+        <!-- Tab Navigation -->
+        <ul class="nav nav-tabs px-4 border-bottom-0" id="projectTabs">
+           <li class="nav-item">
+        <a class="nav-link active" data-bs-toggle="tab" href="#details" data-tab="details">Overview</a>
+    </li>
+            <li class="nav-item">
+                <a class="nav-link " data-bs-toggle="tab" href="#members" data-tab="members">Members</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link " data-bs-toggle="tab" href="#tasks" data-tab="tasks">Tasks</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link " data-bs-toggle="tab" href="#files" data-tab="files">Files</a>
+            </li>
+
+            <li class="nav-item">
+                <a class="nav-link " data-bs-toggle="tab" href="#timesheet" data-tab="timesheet">Timesheet</a>
+            </li>
+
+
+             <li class="nav-item">
+               <a class="nav-link " href="{% url 'project_timeline' project.id %}">Grantt chart</a>
+            </li>
+
+        </ul>
+<br>
+
+        <!-- Tab Content -->
+        <div class="tab-content">
+
+
+    <!-- Details Section -->
+    <div id="details" class="tab-pane fade show active">
+       <div class="container-fluid mt-4">
+    <div class="row">
+        <!-- Left Sidebar: Overdue Tasks and Upcoming Deadlines -->
+        <div class="col-md-7">
+            <!-- Overdue Tasks Section -->
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header">
+                    <h6 class="mb-0 fw-bold">Overdue Tasks</h6>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group">
+                        {% for task in tasks %}
+                            {% if task.completed_time_display and task.completed_time_display.date > task.due_date %}
+                                <li class="list-group-item d-flex justify-content-between">
+                                    {{ task.task_name }}
+                                    <span class="text-danger">Due: {{ task.due_date }}</span>
+                                </li>
+                            {% else %}
+                                <li class="list-group-item d-flex justify-content-between">
+                                    {{ task.task_name }}
+                                    <span class="text-success">On Time</span>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Upcoming Deadlines Section -->
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header">
+                    <h6 class="mb-0 fw-bold">Upcoming Deadlines</h6>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group">
+                        {% if upcoming_tasks %}
+                            {% for task in upcoming_tasks %}
+                                <li class="list-group-item d-flex justify-content-between">
+                                    {{ task.task_name }}
+                                    <span class="text-warning">Due: {{ task.due_date }}</span>
+                                </li>
+                            {% endfor %}
+                        {% else %}
+                            <li class="list-group-item text-muted text-center">No upcoming deadlines</li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+             <div class="card mb-4 shadow-sm">
+                <div class="card-header">
+                    <h6 class="mb-0 fw-bold">Time Spent on Tasks</h6>
+                </div>
+                <div class="card-body">
+                    <div id="chartContainer" style="width: 100%; height: 400px;">
+                        <canvas id="timeSpentChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Sidebar: Charts for Project Progress and Time Spent -->
+        <div class="col-md-5">
+            <!-- Project Progress Donut Chart -->
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header">
+                    <h6 class="mb-0 fw-bold">Project due</h6>
+                </div>
+                <div class="card-body" style="width: 100%; height: 150px;">
+                   <div class="timeline">
+            <div class="timeline-item">
+
+                <div class="timeline-content">
+                    <h5>Due Date: {{ project.due_date }}</h5>
+                </div>
+            </div>
+            <div class="timeline-item">
+
+                <div class="timeline-content">
+                    <p>Status: <strong>{{ status }}</strong></p>
+                </div>
+            </div>
+            <div class="timeline-item">
+
+                <div class="timeline-content">
+                    {% if days_remaining is not None %}
+                        {% if status == "🔴 Overdue" %}
+                            <p>🚨 Overdue by <strong>{{ days_remaining }}</strong> days.</p>
+                        {% else %}
+                            <p> Due in <strong>{{ days_remaining }}</strong> days.</p>
+                        {% endif %}
+                    {% else %}
+                        <p class="text-muted">No due date assigned.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+                </div>
+            </div>
+            <div class="card mb-4 shadow-sm">
+    <div class="card-header">
+        <h6 class="mb-0 fw-bold">Project Status</h6>
+    </div>
+    <div class="card-body">
+        <p>Status: <strong>{{ project_status }}</strong></p>
+    </div>
+</div>
+
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header">
+                    <h6 class="mb-0 fw-bold">Project Progress</h6>
+                </div>
+                <div class="card-body" style="width: 100%; height: 400px; margin-left:90px;">
+                    <canvas id="progressChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Time Spent on Tasks Bar Chart -->
+
+        </div>
+    </div>
+       </div>
+    </div>
+
+
+<!-- Include Chart.js -->
+
+
+
+    <!-- Members Section -->
+   <div id="members" class="tab-pane fade">
+    <div class="card mb-4 shadow-sm">
+        <!-- Button aligned to the right -->
+        <div class="d-flex justify-content-end p-3">
+        <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#newMemberModal">Add Member</button>
+        </div>
+
+        <div class="card-header">
+            <h6 class="mb-0">Assigned Members</h6>
+        </div>
+    <div class="card-body">
+        <table class="table table-striped table-hover table-bordered">
+                <thead class="table text-center">
+                    <tr>
+                        <th>Member</th>
+                        <th>Select Role</th>
+                        <th>User Role</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                   {% for member in project.assigned.all %}
+                   <tr>
+                       <td>
+                           <img src="{{ member.image.url }}" alt="{{ member.name }}" class="rounded-circle border mr-3" style="width: 60px; height: 50px;">
+                           &nbsp;<span>{{ member.name }}</span>
+                       </td>
+                       <td>
+                           <label class="d-flex align-items-center">
+                               <input type="checkbox" class="ml-auto lead-checkbox" data-member-id="{{ member.reg_no }}"
+                                    {% if project.projectlead.user == member %} checked {% endif %}>
+                               <label class="ml-1">Project Lead</label>
+                           </label>
+                       </td>
+                       <td>
+                           {% if project_lead and project_lead.user == member %}
+                               <span class="badge bg-success">Project Lead</span>
+                           {% else %}
+                               <span class="text-muted">Member</span>
+                           {% endif %}
+                       </td>
+                        <td>
+                            <a href="#" data-bs-toggle="modal" data-bs-target="#deleteMemberModal{{ member.reg_no }}" title="Delete Member">
+                                <i class="bi bi-trash text-danger"></i> 
+                            </a>
+                        </td>
+                    </tr>
+                   <!-- add_member Modal -->
+                   <div class="modal fade" id="newMemberModal" tabindex="-1" aria-labelledby="newMemberModalLabel" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="newMemberModalLabel">Add New Member</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <form method="POST" action="{% url 'new_member' project.id %}">
+                                        {% csrf_token %}
+                                        <div class="mb-3">
+                                            <label for="memberSelect" class="form-label">Select Member</label>
+                                            <select class="form-select" id="memberSelect" name="member_reg_no" required>
+                                                <option value="">-- Select a Member --</option>
+                                                {% for member in all_members %}
+                                                <option value="{{ member.reg_no }}">{{ member.name }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary">Add Member</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <!-- Delete Confirmation Modal -->
+                    <div class="modal fade" id="deleteMemberModal{{ member.reg_no }}" tabindex="-1" aria-labelledby="deleteMemberLabel" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Remove Member</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    Are you sure you want to remove {{ member.name }} from the project?
+                                </div>
+                                <div class="modal-footer">
+                                    <form method="POST" action="{% url 'remove_member' project.id member.reg_no %}">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-danger">Remove</button>
+                                    </form>
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                {% empty %}
+                <tr>
+                    <td colspan="3" class="text-muted small text-center">No members assigned yet.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div></div></div>
+
+
+              <!-- Task Section -->
+            <div id="tasks" class="tab-pane fade">
+                <div class="card mb-4 shadow-sm">
+                    <div class="d-flex justify-content-end p-3">
+       <a href="{% url 'assign_task' %}" class="btn btn-outline-primary">Add Task</a>
+        </div>
+    <div class="card-header">
+        <h6 class="mb-0">Tasks Associated with This Project</h6>
+    </div>
+    <div class="table-responsive">
+
+                        <table class="table table-striped table-hover table-bordered">
+                        <thead class="table text-center">
+
+
+            <tr>
+                    <th>Task Name</th>
+                    <th>Function</th>
+
+                    <th>Assigned To</th>
+                    <th>start date</th>
+                    <th>Due Date</th>
+                    <th>Est.hrs</th>
+                    <th>Logged hrs</th>
+
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for task in project.tasks.all %}
+                <tr>
+                    <td>{{ task.task_name }}</td>
+                    <td>{{ task.function }}</td>
+
+
+                    <td> {{ task.assigned_to.all|join:', ' }}</td>
+                    <td>{{ task.start_date }}</td>
+                    <td>{{ task.due_date }}</td>
+                    <td>{{ task.estimated_hours }} h</td>
+                                        <td>
+    {% if task.total_time_spent %}
+        {{ task.total_time_spent }}
+    {% else %}
+        Not recorded
+    {% endif %}
+</td>
+                               <td>
+                        {% if task.status == "Completed" %}
+                            <span class="badge bg-success">{{ task.status }}</span>
+                        {% elif task.status == "In Progress" %}
+                            <span class="badge bg-warning">{{ task.status }}</span>
+                        {% else %}
+                            <span class="badge bg-secondary">{{ task.status }}</span>
+                        {% endif %}
+                    </td>
+
+
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="text-center">No tasks assigned yet.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div></div></div>
+
+
+
+
+     <div id="files" class="tab-pane fade">
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header">
+            <h6 class="mb-0">Assigned Files</h6>
+        </div>
+        <div class="card-body">
+            {% if project.files %}
+                <div class="d-flex align-items-center mb-3">
+                    <a href="{{ project.files.url }}" target="_blank">
+                        📂 Download File: {{ project.files.name }}
+                    </a>
+                </div>
+            {% else %}
+                <p class="text-muted small">No files uploaded for this project.</p>
+            {% endif %}
+        </div></div></div>
+
+
+<div id="timesheet" class="tab-pane fade">
+    <!-- Summary Cards -->
+    <div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card border-0 shadow-lg rounded-4" style="background: linear-gradient(135deg, #f8f9fa, #e9ecef);">
+            <div class="card-body text-center">
+                <h5 class="card-title text-primary fw-bold">
+                    <i class="fas fa-clock me-2"></i> Total Estimated Hours
+                </h5>
+                <p class="fs-3 fw-bold text-dark mb-0">{{ total_estimated_hours|floatformat:2 }} h</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card border-0 shadow-lg rounded-4" style="background: linear-gradient(135deg, #f8f9fa, #e9ecef);">
+            <div class="card-body text-center">
+                <h5 class="card-title text-success fw-bold">
+                    <i class="fas fa-hourglass-end me-2"></i> Total Time Spent
+                </h5>
+                <p class="fs-3 fw-bold text-dark mb-0">{{ total_time_spent }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+    <!-- Filter & Search Section -->
+    <div class="card shadow-sm border-0 rounded-3 p-3 mb-4">
+        <div class="row g-3 align-items-center">
+            <div class="col-md-4">
+                <input type="text" id="search-input" class="form-control" placeholder="🔍 Search tasks or employees">
+            </div>
+            <div class="col-md-3">
+                <input type="date" id="date-input" class="form-control">
+            </div>
+            <input type="hidden" id="project-id" value="{{ project.id }}">
+        </div>
+    </div>
+
+    <!-- Timesheet Table Container -->
+    <div class="col-12 mt-3">
+        <div class="card shadow-sm border-0 rounded-3 p-3">
+            <div id="timesheet-container">
+                {% include 'partials/timesheet.html' %}
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+        <!-- Footer -->
+        <footer class="mt-5 py-3" style="background-color: #eaeaea;">
+            <div class="container text-center">
+                <p class="mb-0 small">Project Overview - © 2025</p>
+            </div>
+        </footer>
+        </div></div>
+
+
+
+
+    <!-- Bootstrap JS (Required for Tabs) -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+
+
+<script>
+   var ctxProgress = document.getElementById('progressChart').getContext('2d');
+
+        // Safely parse the JSON data
+        var progressData = JSON.parse('{{ progress_data|escapejs }}');
+
+        // Create the chart
+        var progressChart = new Chart(ctxProgress, {
+            type: 'doughnut',
+            data: {
+                labels: ['Completed', 'Pending', 'In Progress'],
+                datasets: [{
+                    data: progressData,
+                    backgroundColor: ['#28a745', '#ffc107', '#007bff']
+                }]
+            }
+        });
+    // Time Spent on Tasks Bar Chart
+    document.addEventListener("DOMContentLoaded", function () {
+        const taskNames = [{% for task in tasks %}"{{ task.task_name }}",{% endfor %}];
+        const taskTimes = [{% for task in tasks %}{{ task.total_hours }}.{% if task.total_minutes < 10 %}0{% endif %}{{ task.total_minutes }},{% endfor %}];
+
+        const chartContainer = document.getElementById('timeSpentChart').getContext('2d');
+
+        new Chart(chartContainer, {
+            type: 'bar',
+            data: {
+                labels: taskNames,
+                datasets: [{
+                    label: 'Time Spent (hours)',
+                    data: taskTimes,
+                    backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { autoSkip: false }
+                    }
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { enabled: true }
+                },
+                elements: {
+                    bar: { maxBarThickness: 30 }
+                }
+            }
+        });
+    });
+
+document.querySelectorAll(".lead-checkbox").forEach((checkbox) => {
+    checkbox.addEventListener("change", function () {
+        const memberRegNo = this.getAttribute("data-member-id"); // ✅ Should be reg_no
+        console.log("Selected Member reg_no:", memberRegNo); // ✅ Debug
+
+        fetch("{% url 'set_project_lead' %}", {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": "{{ csrf_token }}",
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                "member_id": memberRegNo, // ✅ Send reg_no instead of id
+                "project_id": "{{ project.id }}"
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status !== "success") {
+                alert("Error updating Project Lead: " + data.message);
+            }
+        })
+        .catch(error => console.error("Error:", error));
+    });
+});
+
+ document.addEventListener("DOMContentLoaded", function() {
+            // Ensure the first tab is displayed when the page loads
+            document.getElementById("tab1").classList.add("active");
+        });
+
+        function openTab(event, tabId) {
+            let tabContents = document.querySelectorAll(".tab-content");
+            let tabs = document.querySelectorAll(".tab");
+
+            tabContents.forEach(content => content.classList.remove("active"));
+            tabs.forEach(tab => tab.classList.remove("active-tab"));
+
+            document.getElementById(tabId).classList.add("active");
+            event.currentTarget.classList.add("active-tab");
+        }
+document.addEventListener("DOMContentLoaded", function () {
+    const searchInput = document.getElementById("search-input");
+    const dateInput = document.getElementById("date-input");
+    const projectId = document.getElementById("project-id").value; // Assuming you store project ID in a hidden input
+    const timesheetContainer = document.getElementById("timesheet-container");
+
+    function filterTasks() {
+        const searchQuery = searchInput.value.trim();
+        const selectedDate = dateInput.value.trim();
+
+        // Ensure project ID is available
+        if (!projectId) {
+            console.error("Project ID is missing");
+            return;
+        }
+
+        // Prepare request parameters
+        const params = new URLSearchParams();
+        params.append("project_id", projectId);
+        if (searchQuery) params.append("search", searchQuery);
+        if (selectedDate) params.append("date", selectedDate);
+
+        // Make AJAX request
+        fetch(`/filter_tasks/?${params.toString()}`, {
+            method: "GET",
+            headers: { "X-Requested-With": "XMLHttpRequest" }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.html) {
+                timesheetContainer.innerHTML = data.html; // Update timesheet
+            }
+        })
+        .catch(error => console.error("Error fetching filtered tasks:", error));
+    }
+
+    // Event Listeners
+    searchInput.addEventListener("input", filterTasks); // Search as you type
+    dateInput.addEventListener("change", filterTasks);  // Filter on date change
+});
+
+
+
+
+
+
+    function calculateTotalTime() {
+    let total = 0;
+    document.querySelectorAll(".time-spent").forEach(cell => {
+        let time = parseFloat(cell.textContent) || 0;
+        total += time;
+    });
+    document.getElementById("total-time-spent").textContent = total.toFixed(2) + " hours";
+     document.getElementById('filtered-total-time').style.display = 'table-cell';
+document.getElementById('grand-total-time').style.display = 'table-cell';
+}
+    $.get("your-filter-url", function(response) {
+    $("#timesheet-table").html(response.table_html);
+    $("#filtered-time-spent").text(response.filtered_time_spent);
+    $("#total-time-spent").text(response.total_time_spent);
+});
+
+
+
+</script>
+
+
+</body>
+{% endblock %}

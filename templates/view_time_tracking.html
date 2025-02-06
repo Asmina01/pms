@@ -1,0 +1,18 @@
+<h1>Time Tracking</h1>
+
+<table border="1">
+    <tr>
+        <th>Task</th>
+        <th>Project</th>
+        <th>Employee</th>
+        <th>Total Hours</th>
+    </tr>
+    {% for log in taskprogress %}
+        <tr>
+            <td>{{ log.task__name }}</td>
+            <td>{{ log.task__project__name }}</td>
+            <td>{{ log.employee__username }}</td>
+            <td>{{ log.total_hours|floatformat:2 }}</td>
+        </tr>
+    {% endfor %}
+</table>

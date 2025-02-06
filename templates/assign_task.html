@@ -1,0 +1,144 @@
+{% extends "adminindex.html" %}
+{% load static %}
+{% block content %}
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Task</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+
+        .scrollable-container {
+            max-height: 90px; /* Limit the height for scrolling */
+            width: 100%; /* Set to full width for consistent layout */
+            overflow-y: auto; /* Enable vertical scrolling */
+            border: 1px solid #ccc; /* Add a border for visibility */
+            padding: 10px; /* Add padding for better usability */
+            border-radius: 5px; /* Optional: Rounded corners */
+            background-color: #f9f9f9; /* Optional: Light background for better contrast */
+        }
+
+
+    </style>
+</head>
+<div class="container mt-4">
+    <div class="card shadow-lg p-4">
+        <h3 class="text mb-4">Assign Task</h3>
+
+        <form method="post" id="task-form">
+            {% csrf_token %}
+
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="id_project" class="form-label">Project:</label>
+                    <select id="id_project" name="project" class="form-control">
+                        <option value="">Select Project</option>
+                        {% for project in form.project.field.queryset %}
+                            <option value="{{ project.id }}">{{ project.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label for="client_name" class="form-label">Client Name:</label>
+                    <input type="text" id="client_name" class="form-control" readonly>
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="id_function" class="form-label">Function:</label>
+                    <select id="id_function" name="function" class="form-control">
+                        <option value="">Select Function</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label for="id_task_name" class="form-label">Task Name:</label>
+                    {{ form.task_name }}
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="id_description" class="form-label">Description:</label>
+                {{ form.description }}
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="id_category" class="form-label">Category:</label>
+                    {{ form.category }}
+                </div>
+                <div class="col-md-6">
+                    <label for="id_assigned_to" class="form-label">Assign To:</label>
+                    {{ form.assigned_to }}
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="id_priority" class="form-label">Priority:</label>
+                    {{ form.priority }}
+                </div>
+                <div class="col-md-6">
+                    <label for="id_status" class="form-label">Status:</label>
+                    {{ form.status }}
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="id_start_date" class="form-label">Start Date:</label>
+                    {{ form.start_date }}
+                </div>
+                <div class="col-md-6">
+                    <label for="id_due_date" class="form-label">Due Date:</label>
+                    {{ form.due_date }}
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="id_estimated_hours" class="form-label">Estimated Hours:</label>
+                {{ form.estimated_hours }}
+            </div>
+
+            <div class="text-center">
+                <button type="submit" class="btn btn-primary px-4">Assign Task</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function() {
+        $("#id_project").change(function() {
+            var projectId = $(this).val();
+            if (projectId) {
+                $.ajax({
+                    url: "{% url 'get_project_details' %}",
+                    data: {'project_id': projectId},
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.client_name) {
+                            $("#client_name").val(response.client_name);
+                        } else {
+                            $("#client_name").val("No Client");
+                        }
+
+                        var functionDropdown = $("#id_function");
+                        functionDropdown.empty();
+                        functionDropdown.append('<option value="">Select Function</option>');
+
+                        $.each(response.functions, function(index, functionObj) {
+                            functionDropdown.append('<option value="' + functionObj.id + '">' + functionObj.function + '</option>');
+                        });
+                    }
+                });
+            }
+        });
+    });
+</script>
+
+
+</body>
+{% endblock %}

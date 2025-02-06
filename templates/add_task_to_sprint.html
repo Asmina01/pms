@@ -1,0 +1,21 @@
+{% extends 'adminindex.html' %}
+{% load static %}
+{% block content %}
+
+<h2>Add Tasks to Sprint: {{ sprint.sprint_name }}</h2>
+
+<form method="POST">
+    {% csrf_token %}
+    <div class="form-group">
+        <label for="tasks">Backlog Tasks:</label>
+        <select id="tasks" name="tasks" multiple class="form-control">
+            {% for task in backlog_tasks %}
+                <option value="{{ task.id }}">{{ task.task_name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <button type="submit" class="btn btn-primary mt-3">Add Selected Tasks</button>
+</form>
+
+<a href="{% url 'sprint_dashboard' %}" class="btn btn-secondary mt-3">Back to Dashboard</a>
+{% endblock %}

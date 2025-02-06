@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Project List</title>
+</head>
+<body>
+    <h2>Project List</h2>
+    <table border="1">
+        <tr>
+            <th>Project Name</th>
+            <th>Client</th>
+            <th>Project Type</th>
+        </tr>
+        {% for project_details in projects_details %}
+        <tr>
+            <td>{{ project_details.name }}</td>
+            <td>{{ project_details.client }}</td>
+            <td>{{ project_details.project_type }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="3">No projects available</td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>

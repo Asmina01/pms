@@ -1,0 +1,29 @@
+<html>
+    <head>
+        <title>
+            jquery animation
+        </title>
+        <script src="jq.js"></script>
+       
+
+    </head>
+    <body>
+        
+        <div id="con">This is the content to be  hide and show.</div>
+        <button id="button">click</button>
+    
+        <script>
+            $(document).ready(function() {
+                $('#button').click(function() {
+                    var co = $('#con');
+                    
+                    if (co.is(':visible')) {
+                        co.css('color', 'red').hide(2000);
+                    } else {
+                        co.css('color', 'green').show(2000);
+                    }
+                });
+            });
+        </script>
+    </body>
+</html>

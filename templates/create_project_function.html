@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Create Project Function</title>
+</head>
+<body>
+    <h2>Create Project Function</h2>
+    <form method="POST">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Save Function</button>
+    </form>
+</body>
+</html>

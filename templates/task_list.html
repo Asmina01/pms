@@ -1,0 +1,240 @@
+{% extends 'adminindex.html' %}
+{% load static %}
+{% block content %}
+
+<style>
+    .actions-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .icons-group a {
+            margin: 0 10px;
+            font-size: 24px;
+            color: #007bff;
+            text-decoration: none;
+        }
+        .icons-group a:hover {
+            color: #0056b3;
+        }
+        .dropdown-menu {
+            min-width: 300px;
+        }
+</style>
+
+
+<div class="container mt-2">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h5 class="mb-0">Tasks</h5>
+        <div class="d-flex gap-3">
+            <!-- Search Form -->
+
+            <form method="GET" action="" id="hideCompletedForm" >
+                <div class="form-check mb-1" style="margin-top:10px">
+                    <input type="checkbox" class="form-check-input" id="hide_completed" name="hide_completed"
+                           {% if hide_completed == 'on' %}checked{% endif %}
+                           onchange="this.form.submit();">
+                    <label class="form-check-label" for="hide_completed">Hide Completed Tasks</label>
+                </div>
+            </form>
+
+             <form method="GET" action="" class="d-flex">
+                <input type="text" name="search" class="form-control me-2" placeholder="Search ..." value="{{ search_query }}">
+                <button type="submit" class="btn btn-outline-primary">search</button>
+            </form>
+
+
+            <!-- Filter Dropdown with Icon -->
+            <div class="dropdown">
+               <button class="btn btn-outline-primary dropdown-toggle" type="button" id="filterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+               Filter
+            </button>
+
+                <!-- Dropdown Menu -->
+                <form method="GET" action="">
+                    <ul class="dropdown-menu p-3" aria-labelledby="filterDropdown" style="min-width: 250px;">
+                        <!-- Status Filter -->
+                        <li class="mb-3">
+                            <label for="status" class="form-label">Status</label>
+                            <select name="status" id="status" class="form-select">
+                                <option value="" disabled selected>Select Status</option>
+                                <option value="Pending">Pending</option>
+                                <option value="Ongoing">Ongoing</option>
+                                <option value="Completed">Completed</option>
+                            </select>
+                        </li>
+
+                        <!-- Category Filter -->
+                        <li class="mb-3">
+                            <label for="category" class="form-label">Category</label>
+                            <select name="category" id="category" class="form-select">
+                                <option value="" disabled selected>Select Category</option>
+                                <option value="Testing">Testing</option>
+                                <option value="UI design">UI design</option>
+                                <option value="Bug">Bug</option>
+                                <option value="Support">Support</option>
+                                <option value="Front end">Front end</option>
+                                <option value="Database">Database</option>
+                            </select>
+                        </li>
+
+                         <li class="mb-3">
+                            <label for="priority" class="form-label">Priority</label>
+                            <select name="priority" id="priority" class="form-select">
+                                <option value="" disabled selected>Select Priority</option>
+                                <option value="Low">Low</option>
+                                <option value="Medium">Medium</option>
+                                <option value="High">High</option>
+                            </select>
+                         </li>
+
+        <!-- Project Filter -->
+                        <li class="mb-3">
+                            <label for="project" class="form-label">Project</label>
+                            <select name="project" id="project" class="form-select">
+                                <option value="" selected>All</option>
+                                {% for project in project_details %}
+            <option value="{{ project.id }}" {% if project.id|stringformat:"s" == project_filter %}selected{% endif %}>
+                {{ project.name }}
+            </option>
+        {% endfor %}
+                            </select>
+                        </li>
+
+        <!-- Assigned To Filter -->
+
+
+                        <!-- Start Date Filter -->
+                        <li class="mb-3">
+                            <label for="start_date" class="form-label">Start Date</label>
+                            <input type="date" name="start_date" id="start_date" class="form-control">
+                        </li>
+
+                        <!-- Due Date Filter -->
+                        <li class="mb-3">
+                            <label for="due_date" class="form-label">Due Date</label>
+                            <input type="date" name="due_date" id="due_date" class="form-control">
+                        </li>
+
+                        <!-- Estimated Hours Filter -->
+                        <li class="mb-3">
+                            <label for="estimated_hours" class="form-label">Estimated Hours (Minimum)</label>
+                            <input type="number" name="estimated_hours" id="estimated_hours" class="form-control">
+                        </li>
+
+
+
+
+                        <!-- Submit and Reset -->
+                        <li class="d-flex justify-content-between">
+                            <button type="submit" class="btn btn-primary">Apply Filters</button>
+                            <a href="{% url 'task_list' %}" class="btn btn-secondary">Reset</a>
+                        </li>
+                    </ul>
+                </form>
+            </div>
+
+            <!-- Add New Task Button -->
+            <a href="{% url 'assign_task' %}" class="btn btn-outline-primary">Add Task</a>
+            <a method="get" href="{% url 'export_tasks_to_excel' %}" class="btn btn-success">Export </a>
+        </div>
+    </div>
+
+    <!-- Task Table -->
+     <div class="table-responsive">
+
+                        <table class="table table-striped table-hover table-bordered">
+                        <thead class="table text-center">
+
+
+            <tr>
+                <th>Project</th>
+                <th>Function</th>
+                <th>Task Name</th>
+
+                  <th>Start Date</th>
+                <th>Due date</th>
+
+                <th>Assign to</th>
+                <th>Est. hrs</th>
+                <th>logged hrs</th>
+
+
+                <th>Status</th>
+                <th>cmplt.on</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for task in tasks %}
+                <tr style="height: 60px; vertical-align: middle;">
+                    <td>{{ task.project}}</td>
+                    <td>{{ task.function }}</td>
+                    <td>{{ task.task_name }}</td>
+                    <td>{{ task.start_date }}</td>
+                    <td>{{ task.due_date }}</td>
+
+
+                    <td>
+
+                        {{ task.assigned_to.all|join:', ' }}
+                    </td>
+                    <td>{{ task.estimated_hours }} h</td>
+
+                                     <td style="
+                        {% if task.total_time_spent > task.estimated_hours %}
+                            background-color: #f8d7da; color: red; font-weight: bold;
+                        {% elif task.total_time_spent  %}
+                            background-color: #d4edda; color: green; font-weight: bold;
+                        {% else %}
+                            background-color: #f8f9fa; color: gray;
+                        {% endif %}
+                    ">
+                        {% if task.total_time_spent %}
+                            {{ task.total_time_spent }}
+                        {% else %}
+                            <span class="text-muted">Not started</span>
+                        {% endif %}
+
+
+                    </td>
+
+
+
+                    <td>
+                        {% if task.status == 'Completed' %}
+                            <span class="badge bg-success">Completed</span>
+                        {% elif task.status == 'In Progress' %}
+                            <span class="badge bg-info">In Progress</span>
+                        {% elif task.status == 'Pending' %}
+                            <span class="badge bg-danger">Pending</span>
+                        {% else %}
+                        <span class="badge bg-secondary">Backlog</span>
+                        {% endif %}
+                    </td>
+                     <td {% if task.status == 'Completed' and task.completed_time_display %}
+        {% if task.completed_time_display.date > task.due_date %}
+            style="background-color: #f8d7da;"  <!-- Light red background for overdue -->
+        {% else %}
+            style="background-color: #d4edda;"  <!-- Light green background for on-time -->
+        {% endif %}
+    {% else %}
+        style="background-color: #f8f9fa;"  <!-- Light gray background for not completed -->
+    {% endif %}
+    {% if task.status == 'Completed' and task.completed_time_display %}
+        {% if task.completed_time_display.date > task.due_date %}
+            <span class="text-danger fw-bold">{{ task.completed_time_display|date:"b d, Y" }}</span>
+        {% else %}
+            <span class="text-success fw-bold">{{ task.completed_time_display|date:"b d, Y" }}</span>
+        {% endif %}
+    {% else %}
+        <span class="text-muted">Not completed</span>
+    {% endif %}
+</td>
+
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

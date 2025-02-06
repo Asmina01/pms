@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<div class="container mt-2">
+    <h5>Project Progress - Table View</h5>
+
+    <div class="row">
+        {% for project in project_data %}
+
+        <!-- Combined Section for Task Status, Project Heading, Bar, and Table -->
+        <div class="col-12 mb-5" style="background-color: white; border-radius: 8px; padding: 20px; box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);">
+
+            <!-- Project Heading and Progress Bar -->
+            <div class="row mb-4">
+                <div class="col-md-8">
+                    <h5 class="font-weight-bold">{{ project.project_name }}</h5>
+                </div>
+                <div class="col-md-4 d-flex flex-column align-items-end">
+                    <h6>Project Progress</h6>
+                    <div class="progress" style="height: 20px; width: 100%; max-width: 300px;">
+                        <div class="progress-bar" role="progressbar" style="width: {{ project.project_progress }}%;" aria-valuenow="{{ project.project_progress }}" aria-valuemin="0" aria-valuemax="100">
+                            {{ project.project_progress }}%
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Task Status Summary -->
+            <div class="row d-flex justify-content-between mb-4">
+                <!-- Total Tasks -->
+                <div class="col-md-3 mb-3">
+                    <div class="text-center" style="background-color: #f0f9ff; border-radius: 10px; padding: 15px 20px; box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);">
+                        <i class="fas fa-tasks" style="font-size: 24px; color: #17a2b8;"></i>
+                        <p class="mb-0" style="font-size: 14px; font-weight: bold;">Total Tasks</p>
+                        <p class="text-info mb-0" style="font-size: 18px;">{{ project.total_tasks }}</p>
+                    </div>
+                </div>
+
+                <!-- Pending Tasks -->
+                <div class="col-md-3 mb-3">
+                    <div class="text-center" style="background-color: #fff8e5; border-radius: 10px; padding: 15px 20px; box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);">
+                        <i class="fas fa-hourglass-half" style="font-size: 24px; color: #ffc107;"></i>
+                        <p class="mb-0" style="font-size: 14px; font-weight: bold;">Pending</p>
+                        <p class="text-warning mb-0" style="font-size: 18px;">{{ project.pending_tasks }}</p>
+                    </div>
+                </div>
+
+                <!-- In Progress Tasks -->
+                <div class="col-md-3 mb-3">
+                    <div class="text-center" style="background-color: #e8f0ff; border-radius: 10px; padding: 15px 20px; box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);">
+                        <i class="fas fa-spinner" style="font-size: 24px; color: #007bff;"></i>
+                        <p class="mb-0" style="font-size: 14px; font-weight: bold;">In Progress</p>
+                        <p class="text-primary mb-0" style="font-size: 18px;">{{ project.in_progress_tasks }}</p>
+                    </div>
+                </div>
+
+                <!-- Completed Tasks -->
+                <div class="col-md-3 mb-3">
+                    <div class="text-center" style="background-color: #e6ffed; border-radius: 10px; padding: 15px 20px; box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);">
+                        <i class="fas fa-check-circle" style="font-size: 24px; color: #28a745;"></i>
+                        <p class="mb-0" style="font-size: 14px; font-weight: bold;">Completed</p>
+                        <p class="text-success mb-0" style="font-size: 18px;">{{ project.completed_tasks }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Table for Tasks and Status -->
+            <div class="table-section">
+                <h6 class="font-weight-bold mb-3">Tasks Overview</h6>
+                <table class="table table-bordered table-striped" style="font-size: 14px; table-layout: fixed;">
+                    <thead>
+                        <tr>
+                            <th>Task Name</th>
+                            <th>Pending</th>
+                            <th>In Progress</th>
+                            <th>Completed</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for task in project.tasks %}
+                        <tr style="height: 40px;"> <!-- Adjust row height -->
+                            <td style="width: 25%; padding: 8px;">{{ task.task_name }}</td> <!-- Adjust padding -->
+                            <td style="width: 25%; padding: 8px;">
+                                {% if task.status == 'Pending' %}
+                                <div>
+                                    {% for member in task.assigned_to.all %}
+                                    <div style="background-color: lightgray; border-radius: 10px; padding: 8px; height: 40px; display: flex; align-items: center;">
+                                        <img src="{{ member.image.url }}" alt="{{ member.name }}" style="width: 30px; height: 30px; border-radius: 50%; margin-right: 10px;">
+                                        <span>{{ member.name }}</span>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                {% else %}
+                                <span>-</span>
+                                {% endif %}
+                            </td>
+                            <td style="width: 25%; padding: 8px;">
+                                {% if task.status == 'In Progress' %}
+                                <div>
+                                    {% for member in task.assigned_to.all %}
+                                    <div style="background-color: lightyellow; border-radius: 10px; padding: 8px; height: 40px; display: flex; align-items: center;">
+                                        <img src="{{ member.image.url }}" alt="{{ member.name }}" style="width: 30px; height: 30px; border-radius: 50%; margin-right: 10px;">
+                                        <span>{{ member.name }}</span>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                {% else %}
+                                <span>-</span>
+                                {% endif %}
+                            </td>
+                            <td style="width: 25%; padding: 8px;">
+                                {% if task.status == 'Completed' %}
+                                <div>
+                                    {% for member in task.assigned_to.all %}
+                                    <div style="background-color: lightgreen; border-radius: 10px; padding: 8px; height: 40px; display: flex; align-items: center;">
+                                        <img src="{{ member.image.url }}" alt="{{ member.name }}" style="width: 30px; height: 30px; border-radius: 50%; margin-right: 10px;">
+                                        <span>{{ member.name }}</span>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                {% else %}
+                                <span>-</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <button ><a class="dropdown-item" href="{% url 'assign_task' %}"> create new</a>
+           </button>
+
+        </div>
+
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

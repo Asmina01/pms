@@ -1,0 +1,42 @@
+
+ <table class="table table-striped table-hover table-bordered">
+                <thead class="table text-center">
+                    <tr>
+                        <th>Project </th>
+                        <th>Task</th>
+                        <th>Employee</th>
+                        <th>Start Time</th>
+                        <th>End Time</th>
+                        <th>Total Time</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for task_time in task_times %}
+                    <tr>
+                        <td>{{ task_time.task.project.short_code }}</td>
+                        <td>{{ task_time.task.task_name }}</td>
+                        <td>
+                            {% for user in task_time.task.assigned_to.all %}
+                                {{ user.name }}{% if not forloop.last %}, {% endif %}
+                            {% endfor %}
+                        </td>
+                        <td>{{ task_time.start_time }}</td>
+                        <td>{{ task_time.stop_time|default:"Ongoing" }}</td>
+                        <td>
+                            {% if task_time.stop_time %}
+                                {{ task_time.time_spent }}
+                            {% else %}
+                                <span class="text-muted">On work</span>
+                            {% endif %}
+                        </td>
+
+
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center text-muted">No task records found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+
+            </table>

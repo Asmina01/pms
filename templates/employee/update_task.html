@@ -1,0 +1,101 @@
+{% extends 'employee/employee_dashboard.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-2">
+    <!-- Card Wrapper -->
+    <div class="card p-2 shadow-lg">
+        <!-- Countdown Timer Section -->
+        <div class="text-center mb-2">
+           <i class="bi bi-alarm" style="font-size: 98px;"></i>
+
+            <h2 class="mt-3">Task Countdown</h2>
+            <p id="timerDisplay" class="display-4 fw-bold">00:00:00</p>
+
+            <!-- Timer Control Buttons -->
+            <div>
+                <button type="button" class="btn btn-success me-2" id="startTimerBtn" onclick="startTimer()">Start Timer</button>
+                <button type="button" class="btn btn-danger" id="stopTimerBtn" onclick="stopTimer()" disabled>Stop Timer</button>
+            </div>
+        </div>
+
+        <!-- Task Details Section -->
+        <div class="card mt-4 shadow p-4">
+    <div class="d-flex justify-content-between align-items-center">
+        <h3 class="mb-0">Update Task: <strong>{{ task.task_name }}</strong></h3>
+        <i class="bi bi-alarm fs-2 text-secondary"></i>
+    </div>
+    <p class="mt-2"><strong>Description:</strong> {{ task.description }}</p>
+    <p><strong>Status:</strong> <span class="badge bg-info">{{ task.status }}</span></p>
+    <p><strong>Assigned to:</strong> {{ task.assigned_to.all|join:', ' }}</p>
+
+    <!-- Timer Section -->
+    <div class="mt-3">
+
+
+            <i class="bi bi-clock-fill me-2 fs-3 text-primary"></i>
+            <span id="countdown" class="fs-4 text-danger">00:00:00</span>
+
+
+    </div>
+
+    <!-- Completion Checkbox -->
+    <form method="POST" class="mt-4">
+        {% csrf_token %}
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="is_completed" id="is_completed" {% if task.status == 'Completed' %}checked{% endif %}>
+            <label class="form-check-label" for="is_completed">Mark as Completed</label>
+        </div>
+
+        <!-- Hidden Inputs for Time Capture -->
+        <input type="hidden" name="start_time" id="start_time">
+        <input type="hidden" name="stop_time" id="stop_time">
+
+        <!-- Save Changes Button -->
+        <button type="submit" class="btn btn-primary mt-3">Save Changes</button>
+    </form>
+</div>
+    </div>
+</div>
+
+<script>
+let isTimerRunning = false;
+let startTime, interval;
+
+function startTimer() {
+    if (isTimerRunning) return;
+
+    startTime = new Date();
+    document.getElementById('start_time').value = startTime.toISOString();
+
+    interval = setInterval(updateTimer, 1000);
+    document.getElementById("startTimerBtn").disabled = true;
+    document.getElementById("stopTimerBtn").disabled = false;
+    isTimerRunning = true;
+}
+
+function stopTimer() {
+    if (!isTimerRunning) return;
+
+    clearInterval(interval);
+    let stopTime = new Date();
+    document.getElementById('stop_time').value = stopTime.toISOString();
+
+    document.getElementById("startTimerBtn").disabled = false;
+    document.getElementById("stopTimerBtn").disabled = true;
+    isTimerRunning = false;
+}
+
+function updateTimer() {
+    let now = new Date();
+    let elapsed = Math.floor((now - startTime) / 1000);
+
+    let hours = Math.floor(elapsed / 3600);
+    let minutes = Math.floor((elapsed % 3600) / 60);
+    let seconds = elapsed % 60;
+
+    document.getElementById("timerDisplay").innerText =
+        `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+}
+</script>
+{% endblock %}

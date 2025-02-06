@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+
+{% block content %}
+     <h2>Add Milestone for {{ project.name }}</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Save Milestone</button>
+    </form>
+    <a href="{% url 'project_milestone' project.id %}">Back to Milestones</a>
+{% endblock %}

@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+{% load static %}
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="{% static 'fonts/icomoon/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/owl.carousel.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="{% static 'assets/css/style.css' %}" rel="stylesheet">
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <title>Employee Login</title>
+    <style>
+        body{
+        background-color:#F0F0F0;
+        }
+    </style>
+</head>
+<body>
+    <div class="content">
+        <div class="container" style="margin-top:150px;">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <img src="{% static 'img/undraw_remotely_2j6y.svg' %}" alt="Image" class="img-fluid">
+                </div>
+                <div class="col-md-6">
+                    <div class="card shadow p-4 rounded border-0">
+                        <h3 class="text-center mb-3">Sign In</h3>
+                        <p class="text-center text-muted">Enter your credentials to access your account.</p>
+                        <form method="POST">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Email</label>
+                                <input type="text" class="form-control" name="email" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="password" class="form-label">Password</label>
+                                <input type="password" class="form-control" name="password" required>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="rememberMe" checked>
+                                    <label class="form-check-label" for="rememberMe">Remember me</label>
+                                </div>
+                                <a href="#" class="text-decoration-none">Forgot Password?</a>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100">Log In</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="{% static 'js/jquery-3.3.1.min.js' %}"></script>
+    <script src="{% static 'js/popper.min.js' %}"></script>
+    <script src="{% static 'js/bootstrap.min.js' %}"></script>
+    <script src="{% static 'js/main.js' %}"></script>
+</body>
+</html>
